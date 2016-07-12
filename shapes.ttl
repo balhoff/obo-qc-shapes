@@ -1,0 +1,191 @@
+@prefix      rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+@prefix     rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+@prefix       sh: <http://www.w3.org/ns/shacl#>
+@prefix      xsd: <http://www.w3.org/2001/XMLSchema#>
+@prefix      owl: <http://www.w3.org/2002/07/owl#>
+@prefix oboInOwl: <http://www.geneontology.org/formats/oboInOwl#>
+@prefix      obo: <http://purl.obolibrary.org/obo/>
+@prefix       qc: <http://purl.obolibrary.org/tools/qc-shapes/shapes#>
+
+
+qc:AllObjects
+  rdf:type qc:AllObjectsScope ;
+  rdfs:comment "A reusable instance of qc:AllObjectsScope." ;
+  rdfs:label "All objects" .
+
+
+qc:AllObjectsScope
+  rdf:type sh:SPARQLScopeType ;
+  rdfs:comment "A scope containing all objects in the data graph as focus nodes." ;
+  rdfs:label "All objects scope" ;
+  rdfs:subClassOf sh:Scope ;
+  sh:labelTemplate "All objects" ;
+  sh:select """SELECT DISTINCT ?this WHERE { ?anyS ?anyP ?this . }""" .
+
+
+qc:TextValuesShouldNotContainDoubleSpaces
+    rdfs:label "Text values should not contain double spaces." ;
+    a sh:Shape ;
+    sh:scope qc:AllObjects ;
+    sh:filterShape [
+        sh:constraint [
+            sh:nodeKind sh:Literal ;
+            sh:datatype xsd:string 
+        ]
+    ] ;
+    sh:constraint [
+        sh:not [
+            sh:constraint [
+                sh:pattern "  "
+            ]
+        ]
+    ] .
+
+
+qc:NoSynonymShouldEqualLabel
+    rdfs:label "A synonym should not be the same as the label of a term." ;
+    a sh:Shape ;
+    sh:scopeProperty rdfs:label ;
+    sh:property [
+        sh:predicate rdfs:label ;
+        sh:disjoint oboInOwl:hasRelatedSynonym
+    ] ;
+    sh:property [
+        sh:predicate rdfs:label ;
+        sh:disjoint oboInOwl:hasExactSynonym
+    ] ;
+    sh:property [
+        sh:predicate rdfs:label ;
+        sh:disjoint oboInOwl:hasNarrowSynonym
+    ] ;
+    sh:property [
+        sh:predicate rdfs:label ;
+        sh:disjoint oboInOwl:hasBroadSynonym
+    ] .
+
+
+qc:ShouldNotHaveLeadingOrTrailingSpaces
+    rdfs:label "Text values should not have leading or trailing spaces." ;
+    a sh:Shape ;
+    sh:scope qc:AllObjects ;
+    sh:filterShape [
+        sh:constraint [
+            sh:nodeKind sh:Literal ;
+            sh:datatype xsd:string 
+        ]
+    ] ;
+    sh:constraint [
+        sh:not [
+            sh:constraint [
+                sh:pattern "^ "
+            ]
+        ]
+    ] ;
+    sh:constraint [
+        sh:not [
+            sh:constraint [
+                sh:pattern " $"
+            ]
+        ]
+    ] .
+
+
+qc:LabelsShouldBeUnique
+    rdfs:label "A given label should only be used for one non-obsolete term in the ontology." ;
+    a sh:Shape ;
+    sh:scopeInverseProperty rdfs:label ;
+    sh:property [
+        sh:path [
+            sh:inversePath rdfs:label 
+        ] ;
+        sh:qualifiedMaxCount 1 ;
+        sh:qualifiedValueShape qc:NotObsoleteNamedClass 
+    ] .
+
+
+qc:ExactSynonymsShouldBeUnique
+    rdfs:label "A given exact synonym should only be used for one term in the ontology." ;
+    a sh:Shape ;
+    sh:scopeInverseProperty oboInOwl:hasExactSynonym ;
+    sh:property [
+        sh:path [
+            sh:inversePath oboInOwl:hasExactSynonym 
+        ] ;
+        sh:maxCount 1
+    ] .
+
+
+qc:NamedClass
+    a sh:Shape ;
+    sh:constraint [
+        sh:class owl:Class ;
+        sh:nodeKind sh:IRI
+    ] .
+
+
+qc:NotObsoleteNamedClass
+    a sh:Shape ;
+    sh:constraint [
+        sh:and (
+            qc:NamedClass
+            [
+                sh:constraint [
+                    sh:not [
+                        sh:property [
+                            sh:predicate owl:deprecated ;
+                            sh:hasValue true
+                        ]
+                    ]
+                ]
+            ]
+        )
+    ] .
+
+
+qc:EveryClassShouldHaveALabel
+    rdfs:label "Every class should have a label." ;
+    a sh:Shape ;
+    sh:scopeClass owl:Class ;
+    sh:filterShape qc:NamedClass ;
+    sh:property [
+        sh:predicate rdfs:label ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] .
+
+
+qc:EveryClassShouldHaveADefinition
+    rdfs:label "Every class should have a definition." ;
+    a sh:Shape ;
+    sh:scopeClass owl:Class ;
+    sh:filterShape qc:NotObsoleteNamedClass ;
+    sh:property [
+        sh:predicate obo:IAO_0000115 ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1
+    ] .
+
+
+qc:ValueNotShortFormForObsoleteTerm
+    a sh:SPARQLConstraint ;
+    sh:message "Value must not be obsolete." ;
+    sh:select """
+        SELECT $this ($this AS ?subject) (<http://www.w3.org/2002/07/owl#deprecated> AS ?predicate) (true AS ?object)
+        WHERE {
+            BIND(IRI(CONCAT("http://purl.obolibrary.org/obo/", REPLACE($this, ":", "_"))) AS ?alt)
+            ?alt <http://www.w3.org/2002/07/owl#deprecated> true .
+        }
+        """ .
+
+
+qc:AltIDsShouldNotPointToObsoleteTerms
+    a sh:Shape ;
+    sh:scopeProperty oboInOwl:hasAlternativeId ;
+    sh:property [
+        sh:predicate oboInOwl:hasAlternativeId ;
+        sh:shape [
+            sh:sparql qc:ValueNotShortFormForObsoleteTerm
+        ]
+    ] .
