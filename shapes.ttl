@@ -4,8 +4,16 @@
 @prefix      xsd: <http://www.w3.org/2001/XMLSchema#>
 @prefix      owl: <http://www.w3.org/2002/07/owl#>
 @prefix oboInOwl: <http://www.geneontology.org/formats/oboInOwl#>
+@prefix       dc: <http://purl.org/dc/terms/>
 @prefix      obo: <http://purl.obolibrary.org/obo/>
 @prefix       qc: <http://purl.obolibrary.org/tools/qc-shapes/shapes#>
+
+
+<http://purl.obolibrary.org/tools/qc-shapes/shapes.ttl> 
+    dc:hasVersion <http://purl.obolibrary.org/tools/qc-shapes/releases/2016-7-12/shapes.ttl> ;
+    dc:license <http://creativecommons.org/publicdomain/zero/1.0/> ;
+    rdfs:seeAlso <https://github.com/balhoff/shacl-runner/releases/download/v0.2.1/shacl-runner-0.2.1.tgz> ;
+    rdfs:comment "The SHACL spec is still evolving. This version was tested with the SHACL API included with the runner linked by rdfs:seeAlso." .
 
 
 qc:AllObjects
