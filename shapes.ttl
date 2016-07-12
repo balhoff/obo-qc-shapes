@@ -17,18 +17,18 @@
 
 
 qc:AllObjects
-  rdf:type qc:AllObjectsScope ;
-  rdfs:comment "A reusable instance of qc:AllObjectsScope." ;
-  rdfs:label "All objects" .
+    rdf:type qc:AllObjectsScope ;
+    rdfs:comment "A reusable instance of qc:AllObjectsScope." ;
+    rdfs:label "All objects" .
 
 
 qc:AllObjectsScope
-  rdf:type sh:SPARQLScopeType ;
-  rdfs:comment "A scope containing all objects in the data graph as focus nodes." ;
-  rdfs:label "All objects scope" ;
-  rdfs:subClassOf sh:Scope ;
-  sh:labelTemplate "All objects" ;
-  sh:select """SELECT DISTINCT ?this WHERE { ?anyS ?anyP ?this . }""" .
+    rdf:type sh:SPARQLScopeType ;
+    rdfs:comment "A scope containing all objects in the data graph as focus nodes." ;
+    rdfs:label "All objects scope" ;
+    rdfs:subClassOf sh:Scope ;
+    sh:labelTemplate "All objects" ;
+    sh:select """SELECT DISTINCT ?this WHERE { ?anyS ?anyP ?this . }""" .
 
 
 qc:TextValuesShouldNotContainDoubleSpaces
